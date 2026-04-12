@@ -7,7 +7,10 @@ A Streamlit app that:
 - ranks the riskiest fields for sales reporting
 - uses a lightweight RAG layer to turn findings into a business summary
 
-## Run
+## Website URL
+https://data-loss-analyzer.streamlit.app
+
+## Run Locally
 
 ```bash
 streamlit run app.py
