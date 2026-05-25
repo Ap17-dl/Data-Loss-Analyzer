@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from urllib.parse import urlparse
 from typing import Any
 
 import streamlit as st
@@ -34,14 +35,26 @@ def _secret_or_env(secret_name: str, env_name: str, default: str = "") -> str:
 
         value = os.getenv(env_name, default)
 
-    return value
+    return value.strip() if isinstance(value, str) else value
+
+
+def _valid_supabase_url(url: str) -> bool:
+    if not url:
+        return False
+    parsed = urlparse(url.strip())
+    return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
 
 
 def _supabase_key() -> str:
-    key = _secret_or_env("SUPABASE_ANON_KEY", "SUPABASE_ANON_KEY")
-    if key:
-        return key
-    return _secret_or_env("SUPABASE_KEY", "SUPABASE_KEY")
+    for secret_name, env_name in [
+        ("SUPABASE_ANON_KEY", "SUPABASE_ANON_KEY"),
+        ("SUPABASE_KEY", "SUPABASE_KEY"),
+        ("SUPABASE_PUBLISHABLE_KEY", "SUPABASE_PUBLISHABLE_KEY"),
+    ]:
+        key = _secret_or_env(secret_name, env_name)
+        if key:
+            return key
+    return ""
 
 
 def auth_config_status() -> tuple[bool, str]:
@@ -50,8 +63,10 @@ def auth_config_status() -> tuple[bool, str]:
     if not url or not key:
         return (
             False,
-            "Missing Supabase config. Add SUPABASE_URL and SUPABASE_ANON_KEY (or SUPABASE_KEY) in Streamlit secrets or environment variables.",
+            "Missing Supabase config. Add SUPABASE_URL and a key: SUPABASE_ANON_KEY, SUPABASE_KEY, or SUPABASE_PUBLISHABLE_KEY.",
         )
+    if not _valid_supabase_url(url):
+        return False, "Invalid SUPABASE_URL format. Use full URL like https://<project-ref>.supabase.co"
     return True, "Supabase authentication is configured."
 
 
@@ -59,6 +74,8 @@ def auth_config_status() -> tuple[bool, str]:
 def get_supabase_client() -> Client:
     url = _secret_or_env("SUPABASE_URL", "SUPABASE_URL")
     key = _supabase_key()
+    if not _valid_supabase_url(url):
+        raise ValueError("Invalid SUPABASE_URL format. Use full URL like https://<project-ref>.supabase.co")
     return create_client(url, key)
 
 

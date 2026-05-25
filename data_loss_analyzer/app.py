@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from io import BytesIO
 from datetime import timezone
 
 import pandas as pd
@@ -9,6 +10,36 @@ from analysis import analyze_missing_data
 from auth import auth_config_status, get_user_from_token, sign_in_user, sign_out_user, sign_up_user
 from rag import default_knowledge_base, generate_sales_impact_summary
 from storage import mongo_config_status, recent_user_history, save_uploaded_csv_pair
+
+
+@st.cache_data(show_spinner=False)
+def parse_uploaded_dataset(file_bytes: bytes, filename: str) -> pd.DataFrame:
+    lower_name = filename.lower()
+    if lower_name.endswith(".json"):
+        buffer = BytesIO(file_bytes)
+        try:
+            return pd.read_json(buffer, lines=True)
+        except ValueError:
+            buffer.seek(0)
+            return pd.read_json(buffer)
+    return pd.read_csv(BytesIO(file_bytes))
+
+
+@st.cache_data(ttl=30, show_spinner=False)
+def cached_recent_user_history(user_email: str, limit: int = 5) -> list[dict]:
+    return recent_user_history(user_email, limit=limit)
+
+
+@st.cache_data(show_spinner=False)
+def run_analysis_cached(df: pd.DataFrame, critical_columns: tuple[str, ...], business_context: str) -> tuple[dict, dict]:
+    analysis = analyze_missing_data(df, critical_columns=list(critical_columns))
+    summary = generate_sales_impact_summary(
+        analysis,
+        business_context=business_context,
+        knowledge_base=default_knowledge_base(),
+    )
+    return analysis, summary
+
 
 st.set_page_config(
     page_title="Data Loss Analyzer",
@@ -170,12 +201,24 @@ if "upload_log_message" not in st.session_state:
     st.session_state.upload_log_message = ""
 if "upload_log_error" not in st.session_state:
     st.session_state.upload_log_error = False
+if "analysis" not in st.session_state:
+    st.session_state.analysis = None
+if "summary" not in st.session_state:
+    st.session_state.summary = None
+if "critical_columns" not in st.session_state:
+    st.session_state.critical_columns = []
+if "business_context" not in st.session_state:
+    st.session_state.business_context = ""
 
 
 def reset_to_home() -> None:
     st.session_state.file_uploaded = False
     st.session_state.uploaded_df = None
     st.session_state.uploaded_filename = None
+    st.session_state.analysis = None
+    st.session_state.summary = None
+    st.session_state.critical_columns = []
+    st.session_state.business_context = ""
     st.session_state.uploaded_file_key += 1
 
 
@@ -271,13 +314,14 @@ if not st.session_state.file_uploaded:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         uploaded = st.file_uploader(
-            "Upload Your CSV File",
-            type=["csv"],
+            "Upload Your CSV or JSON File",
+            type=["csv", "json"],
             key=f"uploader_{st.session_state.uploaded_file_key}",
         )
 
     if uploaded is not None:
-        st.session_state.uploaded_df = pd.read_csv(uploaded)
+        file_bytes = uploaded.getvalue()
+        st.session_state.uploaded_df = parse_uploaded_dataset(file_bytes, uploaded.name)
         st.session_state.uploaded_filename = uploaded.name
         if mongo_ok:
             saved, message = save_uploaded_csv_pair(
@@ -286,6 +330,7 @@ if not st.session_state.file_uploaded:
             )
             st.session_state.upload_log_message = message
             st.session_state.upload_log_error = not saved
+            cached_recent_user_history.clear()
         st.session_state.file_uploaded = True
         st.rerun()
 
@@ -304,7 +349,7 @@ if not st.session_state.file_uploaded:
             st.session_state.upload_log_message = ""
             st.session_state.upload_log_error = False
 
-        history = recent_user_history(st.session_state.auth_user["email"], limit=5)
+        history = cached_recent_user_history(st.session_state.auth_user["email"], limit=5)
         if history:
             st.subheader("Recent Uploaded CSV Files")
             for item in history:
@@ -340,33 +385,44 @@ df = st.session_state.uploaded_df
 with st.sidebar:
     st.markdown("---")
     st.subheader("✏️ Business Notes")
-    business_context = st.text_area(
-        "Add notes the summary should consider",
-        placeholder="Example: Revenue is recognized at order level and region-level fields drive territory reporting.",
-        height=150,
-        label_visibility="collapsed",
-    )
+    with st.form("analysis_controls", clear_on_submit=False):
+        business_context = st.text_area(
+            "Add notes the summary should consider",
+            value=st.session_state.business_context,
+            placeholder="Example: Revenue is recognized at order level and region-level fields drive territory reporting.",
+            height=150,
+            label_visibility="collapsed",
+        )
 
-critical_default = [
-    c for c in ["order_id", "customer_id", "region", "order_date", "order_value"] if c in df.columns
-]
-critical_columns = st.multiselect(
-    "Critical columns for sales impact",
-    options=list(df.columns),
-    default=critical_default,
-)
+        critical_default = [
+            c
+            for c in ["order_id", "customer_id", "region", "order_date", "order_value"]
+            if c in df.columns
+        ]
+        if not st.session_state.critical_columns:
+            st.session_state.critical_columns = critical_default
 
-analysis = analyze_missing_data(df, critical_columns=critical_columns)
-summary = generate_sales_impact_summary(
-    analysis,
-    business_context=business_context,
-    knowledge_base=default_knowledge_base(),
-)
+        critical_columns = st.multiselect(
+            "Critical columns for sales impact",
+            options=list(df.columns),
+            default=st.session_state.critical_columns,
+        )
+        run_analysis = st.form_submit_button("Run Analysis", use_container_width=True)
+
+if run_analysis or st.session_state.analysis is None or st.session_state.summary is None:
+    st.session_state.business_context = business_context
+    st.session_state.critical_columns = critical_columns
+    analysis, summary = run_analysis_cached(df, tuple(critical_columns), business_context)
+    st.session_state.analysis = analysis
+    st.session_state.summary = summary
+
+analysis = st.session_state.analysis
+summary = st.session_state.summary
 
 with st.sidebar:
     st.markdown("---")
     if mongo_ok:
-        history = recent_user_history(st.session_state.auth_user["email"], limit=5)
+        history = cached_recent_user_history(st.session_state.auth_user["email"], limit=5)
         if history:
             st.caption("Recent uploaded CSV files")
             for item in history:
