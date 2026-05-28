@@ -26,14 +26,19 @@ def _secret_or_env(secret_name: str, env_name: str, default: str = "") -> str:
         import os
 
         value = os.getenv(env_name, default)
-    return value
+    return value.strip() if isinstance(value, str) else value
 
 
 def mongo_config_status() -> tuple[bool, str]:
     uri = _secret_or_env("MONGODB_URI", "MONGODB_URI")
     if not uri:
         return False, "Missing MongoDB config. Add MONGODB_URI in Streamlit secrets or environment variables."
-    return True, "MongoDB storage is configured."
+    try:
+        client = MongoClient(uri, serverSelectionTimeoutMS=5000)
+        client.admin.command("ping")
+        return True, "MongoDB storage is configured."
+    except Exception as exc:  # pragma: no cover - network/client errors
+        return False, f"MongoDB connection failed: {exc}"
 
 
 @lru_cache(maxsize=1)

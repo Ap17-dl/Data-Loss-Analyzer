@@ -1,22 +1,16 @@
-# RAG Data Loss Analyzer
+# RAG Data Loss Analyzer (Full Stack)
 
-A Streamlit app that:
+A Streamlit full-stack app that now includes:
 
-- uploads a CSV
-- detects missing data with pandas
-- ranks the riskiest fields for sales reporting
-- uses a lightweight RAG layer to turn findings into a business summary
-
-## Website URL
-https://data-loss-analyzer.streamlit.app
+- `Sign Up` and `Sign In` authentication using Supabase Auth
+- CSV upload and missing-data analysis with pandas
+- RAG-style business impact summary generation
+- MongoDB persistence for saved analysis history per user
 
 ## Run Locally
 
 ```bash
+cd data_loss_analyzer
+pip install -r requirements.txt
 streamlit run app.py
-```
 
-## Notes
-
-- The app ships with a sample sales dataset if no file is uploaded.
-- The summary is based on local retrieval over a small sales-impact knowledge base.

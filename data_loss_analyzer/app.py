@@ -299,6 +299,11 @@ with st.sidebar:
         st.rerun()
     if not mongo_ok:
         st.warning(mongo_msg)
+    elif st.session_state.upload_log_message:
+        if st.session_state.upload_log_error:
+            st.error(st.session_state.upload_log_message)
+        else:
+            st.caption(st.session_state.upload_log_message)
 
 if not st.session_state.file_uploaded:
     st.markdown(
@@ -345,10 +350,6 @@ if not st.session_state.file_uploaded:
     )
 
     if mongo_ok:
-        if st.session_state.upload_log_message:
-            st.session_state.upload_log_message = ""
-            st.session_state.upload_log_error = False
-
         history = cached_recent_user_history(st.session_state.auth_user["email"], limit=5)
         if history:
             st.subheader("Recent Uploaded CSV Files")
