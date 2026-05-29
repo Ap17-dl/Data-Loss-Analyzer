@@ -77,3 +77,4 @@ def recent_user_history(user_email: str, limit: int = 5) -> list[dict]:
         return list(cursor)
     except Exception:
         return []
+
