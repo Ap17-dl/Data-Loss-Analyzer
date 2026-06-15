@@ -7,7 +7,6 @@ import pandas as pd
 import streamlit as st
 
 from analysis import analyze_missing_data
-from auth import auth_config_status, get_user_from_token, sign_in_user, sign_out_user, sign_up_user
 from rag import default_knowledge_base, generate_sales_impact_summary
 from storage import mongo_config_status, recent_user_history, save_uploaded_csv_pair
 
@@ -56,43 +55,86 @@ st.markdown(
     #MainMenu                    { visibility: hidden !important; }
     footer                       { visibility: hidden !important; }
 
+    /* Black Stock Market / Grid background theme */
     .stApp {
-        background: linear-gradient(180deg, #f0f9ff 0%, #f5f3ff 45%, #fff5f7 100%);
-        color: #1a1a1a;
+        background-color: #060913;
+        background-image: 
+            radial-gradient(at 50% 0%, rgba(0, 229, 255, 0.12) 0px, transparent 50%),
+            linear-gradient(rgba(0, 229, 255, 0.02) 1px, transparent 1px), 
+            linear-gradient(90deg, rgba(0, 229, 255, 0.02) 1px, transparent 1px);
+        background-size: 100% 100%, 30px 30px, 30px 30px;
+        color: #e2e8f0 !important;
     }
     .block-container { padding-top: 2rem; }
+
+    /* General text overrides for dark mode readability */
+    h1, h2, h3, h4, h5, h6 {
+        color: #ffffff !important;
+    }
+    p, label, li, span, caption {
+        color: #cbd5e1 !important;
+    }
+
+    /* Glassmorphism Hero Box */
     .hero {
         padding: 3rem 2.5rem;
-        border: 3px solid #00d4ff;
+        background: rgba(13, 20, 35, 0.6);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(0, 229, 255, 0.25);
         border-radius: 20px;
-        background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
-        box-shadow: 0 15px 50px rgba(0, 212, 255, 0.3);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         margin-bottom: 2rem;
         text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     }
-    .hero h1 { color: #ffffff; margin: 0; font-weight: 800; text-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .hero p { color: #f0f9ff; margin: 0.8rem 0 0; font-weight: 500; }
+    .hero:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px 0 rgba(0, 229, 255, 0.2);
+        border-color: rgba(0, 229, 255, 0.5);
+    }
+    .hero h1 { 
+        color: #00e5ff !important; 
+        margin: 0; 
+        font-weight: 800; 
+        text-shadow: 0 0 10px rgba(0, 229, 255, 0.3); 
+    }
+    .hero p { 
+        color: #94a3b8 !important; 
+        margin: 0.8rem 0 0; 
+        font-weight: 600; 
+    }
 
+    /* Glassmorphism File Uploader */
     div[data-testid="stFileUploader"] {
-        border: 3px dashed #00d4ff !important;
+        border: 2px dashed rgba(0, 229, 255, 0.3) !important;
         border-radius: 16px !important;
-        background: rgba(0, 212, 255, 0.08) !important;
+        background: rgba(13, 20, 35, 0.4) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
         padding: 2.5rem 2rem 2rem !important;
         margin: 1.5rem 0 !important;
         text-align: center !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+        transition: background 0.3s ease, border-color 0.3s ease;
+    }
+    div[data-testid="stFileUploader"]:hover {
+        background: rgba(13, 20, 35, 0.55) !important;
+        border-color: rgba(0, 229, 255, 0.6) !important;
     }
 
     div[data-testid="stFileUploader"] label p {
-        color: #00695c !important;
+        color: #00e5ff !important;
         font-size: 2rem !important;
         font-weight: 700 !important;
         margin: 0 0 0.4rem 0 !important;
+        text-shadow: 0 0 10px rgba(0, 229, 255, 0.2) !important;
     }
 
     div[data-testid="stFileUploader"] label::after {
         content: "Get started by uploading a CSV file to analyze missing data and sales impact";
         display: block;
-        color: #00897b;
+        color: #94a3b8;
         font-size: 1.1rem;
         font-weight: 500;
         margin-bottom: 1.8rem;
@@ -108,77 +150,167 @@ st.markdown(
         align-items: center !important;
     }
 
-    [data-testid="stFileUploadDropzone"] section > svg { display: block !important; color: #00b0d0 !important; }
+    [data-testid="stFileUploadDropzone"] section > svg { display: block !important; color: #00e5ff !important; }
     [data-testid="stFileUploadDropzone"] section > span,
-    [data-testid="stFileUploadDropzone"] section > p   { display: block !important; color: #00897b !important; }
+    [data-testid="stFileUploadDropzone"] section > p   { display: block !important; color: #94a3b8 !important; }
 
     [data-testid="stFileUploadDropzone"] section > button,
     [data-testid="stFileUploadDropzone"] section > button span,
     [data-testid="stFileUploadDropzone"] section > button p {
-        background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%) !important;
+        background: linear-gradient(135deg, rgba(0, 229, 255, 0.8) 0%, rgba(0, 153, 255, 0.8) 100%) !important;
         color: #ffffff !important;
         font-weight: 700 !important;
-        border: 2px solid #0099ff !important;
+        border: 1px solid rgba(0, 229, 255, 0.4) !important;
         padding: 0.8rem 2rem !important;
         border-radius: 10px !important;
         font-size: 1rem !important;
-        box-shadow: 0 8px 20px rgba(0, 212, 255, 0.3) !important;
+        box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3) !important;
         margin: 0.8rem auto 0 !important;
         display: block !important;
         width: fit-content !important;
         -webkit-text-fill-color: #ffffff !important;
         opacity: 1 !important;
+        backdrop-filter: blur(4px);
     }
     [data-testid="stFileUploadDropzone"] section > button:hover,
     [data-testid="stFileUploadDropzone"] section > button:hover span {
-        background: linear-gradient(135deg, #00bbff 0%, #0088ff 100%) !important;
-        box-shadow: 0 10px 25px rgba(0, 212, 255, 0.4) !important;
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
+        background: linear-gradient(135deg, rgba(0, 229, 255, 1) 0%, rgba(0, 153, 255, 1) 100%) !important;
+        box-shadow: 0 6px 20px rgba(0, 229, 255, 0.4) !important;
     }
 
     [data-testid="stClearedFormSubmitButton"] { display: none !important; }
 
+    /* Glassmorphism Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #060913 !important;
+        background-image: 
+            linear-gradient(rgba(0, 229, 255, 0.02) 1px, transparent 1px), 
+            linear-gradient(90deg, rgba(0, 229, 255, 0.02) 1px, transparent 1px) !important;
+        background-size: 30px 30px !important;
+        backdrop-filter: blur(20px) !important;
+        border-right: 1px solid rgba(0, 229, 255, 0.15) !important;
+    }
+
+    /* Glassmorphism Forms */
+    div[data-testid="stForm"] {
+        background: rgba(13, 20, 35, 0.45) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(0, 229, 255, 0.15) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+        padding: 1.5rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    /* Glassmorphism Expanders */
+    [data-testid="stExpander"] {
+        background: rgba(13, 20, 35, 0.4) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
+    }
+
+    /* Glassmorphism Alert / Info Boxes */
+    div[data-testid="stAlert"] {
+        background: rgba(13, 20, 35, 0.5) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(0, 229, 255, 0.15) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25) !important;
+    }
+
+    /* Glassmorphism Metric Cards */
     .metric-card {
         padding: 1.2rem 1.3rem;
         border-radius: 16px;
-        background: linear-gradient(135deg, #ffb347 0%, #ff9500 100%);
-        border: 2px solid #ff8c00;
-        box-shadow: 0 8px 20px rgba(255, 149, 0, 0.2);
+        background: rgba(255, 149, 0, 0.08);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 149, 0, 0.25);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease;
     }
+    .metric-card:hover { transform: translateY(-2px); }
+
     .metric-card-alt1 {
         padding: 1.2rem 1.3rem;
         border-radius: 16px;
-        background: linear-gradient(135deg, #39ff14 0%, #00ff00 100%);
-        border: 2px solid #00dd00;
-        box-shadow: 0 8px 20px rgba(0, 255, 0, 0.2);
+        background: rgba(0, 230, 118, 0.08);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(0, 230, 118, 0.25);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease;
     }
+    .metric-card-alt1:hover { transform: translateY(-2px); }
+
     .metric-card-alt2 {
         padding: 1.2rem 1.3rem;
         border-radius: 16px;
-        background: linear-gradient(135deg, #ff006e 0%, #ec0c38 100%);
-        border: 2px solid #ff0055;
-        box-shadow: 0 8px 20px rgba(255, 0, 110, 0.2);
+        background: rgba(255, 23, 68, 0.06);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 23, 68, 0.2);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease;
     }
+    .metric-card-alt2:hover { transform: translateY(-2px); }
+
     .metric-card-alt3 {
         padding: 1.2rem 1.3rem;
         border-radius: 16px;
-        background: linear-gradient(135deg, #9d4edd 0%, #7209b7 100%);
-        border: 2px solid #7209b7;
-        box-shadow: 0 8px 20px rgba(146, 39, 141, 0.2);
+        background: rgba(224, 64, 251, 0.08);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(224, 64, 251, 0.25);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease;
     }
-    .small-label { color: #ffffff; font-size: 0.85rem; font-weight: 600; }
-    .big-number  { font-size: 1.8rem; font-weight: 700; color: #ffffff; }
+    .metric-card-alt3:hover { transform: translateY(-2px); }
 
+    .small-label { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .metric-card .small-label { color: #ffb74d !important; }
+    .metric-card-alt1 .small-label { color: #69f0ae !important; }
+    .metric-card-alt2 .small-label { color: #ff5252 !important; }
+    .metric-card-alt3 .small-label { color: #ea80fc !important; }
+
+    .big-number { font-size: 1.8rem; font-weight: 800; }
+    .metric-card .big-number { color: #ffa726 !important; }
+    .metric-card-alt1 .big-number { color: #00e676 !important; }
+    .metric-card-alt2 .big-number { color: #ff1744 !important; }
+    .metric-card-alt3 .big-number { color: #e040fb !important; }
+
+    /* Buttons */
     div[data-testid="stButton"] button {
-        background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%) !important;
+        background: linear-gradient(135deg, rgba(0, 229, 255, 0.8) 0%, rgba(0, 153, 255, 0.8) 100%) !important;
         color: #ffffff !important;
         font-weight: 600 !important;
-        box-shadow: 0 8px 20px rgba(0, 212, 255, 0.3) !important;
+        box-shadow: 0 4px 15px rgba(0, 229, 255, 0.2) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        backdrop-filter: blur(4px);
     }
     div[data-testid="stButton"] button:hover {
-        background: linear-gradient(135deg, #00bbff 0%, #0088ff 100%) !important;
-        box-shadow: 0 10px 25px rgba(0, 212, 255, 0.4) !important;
+        background: linear-gradient(135deg, rgba(0, 229, 255, 1) 0%, rgba(0, 153, 255, 1) 100%) !important;
+        box-shadow: 0 6px 20px rgba(0, 229, 255, 0.4) !important;
+    }
+
+    /* Style input elements to match */
+    div[data-baseweb="select"] > div, 
+    div[data-baseweb="textarea"] > div, 
+    div[data-baseweb="input"] > div {
+        background-color: rgba(9, 14, 25, 0.75) !important;
+        border: 1px solid rgba(0, 229, 255, 0.25) !important;
+        border-radius: 8px !important;
+        backdrop-filter: blur(5px);
+        color: #ffffff !important;
+    }
+    div[role="listbox"] {
+        background-color: #0d1625 !important;
+        border: 1px solid rgba(0, 229, 255, 0.3) !important;
     }
     </style>
     """,
@@ -194,9 +326,9 @@ if "uploaded_df" not in st.session_state:
 if "uploaded_filename" not in st.session_state:
     st.session_state.uploaded_filename = None
 if "auth_user" not in st.session_state:
-    st.session_state.auth_user = None
+    st.session_state.auth_user = {"email": "guest@example.com"}
 if "auth_token" not in st.session_state:
-    st.session_state.auth_token = ""
+    st.session_state.auth_token = "guest-token"
 if "upload_log_message" not in st.session_state:
     st.session_state.upload_log_message = ""
 if "upload_log_error" not in st.session_state:
@@ -211,6 +343,31 @@ if "business_context" not in st.session_state:
     st.session_state.business_context = ""
 
 
+def get_previously_uploaded_files() -> list[str]:
+    import os
+    upload_dir = "/Users/ankushpratham/Ankush_Coding/AI_Model/data_loss_analyzer/uploaded_datasets"
+    if not os.path.exists(upload_dir):
+        return []
+    try:
+        return sorted([
+            f for f in os.listdir(upload_dir)
+            if f.endswith((".csv", ".json")) and os.path.isfile(os.path.join(upload_dir, f))
+        ])
+    except Exception:
+        return []
+
+
+def save_uploaded_file_locally(filename: str, file_bytes: bytes) -> None:
+    import os
+    upload_dir = "/Users/ankushpratham/Ankush_Coding/AI_Model/data_loss_analyzer/uploaded_datasets"
+    try:
+        os.makedirs(upload_dir, exist_ok=True)
+        with open(os.path.join(upload_dir, filename), "wb") as f:
+            f.write(file_bytes)
+    except Exception as e:
+        st.warning(f"Could not save file locally: {e}")
+
+
 def reset_to_home() -> None:
     st.session_state.file_uploaded = False
     st.session_state.uploaded_df = None
@@ -222,81 +379,11 @@ def reset_to_home() -> None:
     st.session_state.uploaded_file_key += 1
 
 
-def reset_auth() -> None:
-    st.session_state.auth_user = None
-    st.session_state.auth_token = ""
-    reset_to_home()
 
-
-def auth_gate() -> None:
-    auth_ok, auth_msg = auth_config_status()
-    if not auth_ok:
-        st.error(auth_msg)
-        st.info("Authentication is required now. Configure Supabase and refresh.")
-        st.stop()
-
-    if st.session_state.auth_token and st.session_state.auth_user is None:
-        st.session_state.auth_user = get_user_from_token(st.session_state.auth_token)
-
-    if st.session_state.auth_user is not None:
-        return
-
-    st.markdown(
-        """
-        <div class="hero">
-          <h1>Data Loss Analyzer</h1>
-          <p>Create an account or sign in to continue</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    sign_in_tab, sign_up_tab = st.tabs(["Sign In", "Sign Up"])
-
-    with sign_in_tab:
-        with st.form("sign_in_form", clear_on_submit=False):
-            email = st.text_input("Email", placeholder="you@example.com")
-            password = st.text_input("Password", type="password")
-            submit_in = st.form_submit_button("Sign In", use_container_width=True)
-        if submit_in:
-            ok, message, user = sign_in_user(email.strip(), password)
-            if ok and user:
-                st.session_state.auth_user = user
-                st.session_state.auth_token = user["access_token"]
-                st.success(message)
-                st.rerun()
-            else:
-                st.error(message)
-
-    with sign_up_tab:
-        with st.form("sign_up_form", clear_on_submit=False):
-            email = st.text_input("New email", placeholder="you@example.com")
-            password = st.text_input("New password", type="password", help="Use at least 8 characters.")
-            submit_up = st.form_submit_button("Create Account", use_container_width=True)
-        if submit_up:
-            if len(password) < 8:
-                st.warning("Password should be at least 8 characters.")
-            else:
-                ok, message = sign_up_user(email.strip(), password)
-                if ok:
-                    st.success(message)
-                else:
-                    st.error(message)
-
-    st.stop()
-
-
-auth_gate()
 
 mongo_ok, mongo_msg = mongo_config_status()
 
 with st.sidebar:
-    st.subheader("Account")
-    st.caption(f"Signed in as: **{st.session_state.auth_user['email']}**")
-    if st.button("Sign Out", use_container_width=True):
-        sign_out_user()
-        reset_auth()
-        st.rerun()
     if not mongo_ok:
         st.warning(mongo_msg)
     elif st.session_state.upload_log_message:
@@ -326,6 +413,7 @@ if not st.session_state.file_uploaded:
 
     if uploaded is not None:
         file_bytes = uploaded.getvalue()
+        save_uploaded_file_locally(uploaded.name, file_bytes)
         st.session_state.uploaded_df = parse_uploaded_dataset(file_bytes, uploaded.name)
         st.session_state.uploaded_filename = uploaded.name
         if mongo_ok:
@@ -348,6 +436,46 @@ if not st.session_state.file_uploaded:
         - Larger datasets provide better insights
         """
     )
+
+    local_files = get_previously_uploaded_files()
+    if local_files:
+        st.markdown(
+            """
+            <div style='text-align: center; margin-top: 1.5rem; margin-bottom: 1rem;'>
+                <h3 style='color: #00838f;'>Select a Previously Analyzed Dataset</h3>
+                <p style='color: #00695c;'>Pick an already uploaded file below to bypass re-uploading:</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        c1, c2, c3 = st.columns([1, 2, 1])
+        with c2:
+            selected_file = st.selectbox(
+                "Choose an existing dataset",
+                options=local_files,
+                label_visibility="collapsed",
+                key="prev_dataset_select"
+            )
+            if st.button("Load and Analyze Selected Dataset", use_container_width=True):
+                import os
+                file_path = os.path.join("/Users/ankushpratham/Ankush_Coding/AI_Model/data_loss_analyzer/uploaded_datasets", selected_file)
+                try:
+                    with open(file_path, "rb") as f:
+                        file_bytes = f.read()
+                    st.session_state.uploaded_df = parse_uploaded_dataset(file_bytes, selected_file)
+                    st.session_state.uploaded_filename = selected_file
+                    st.session_state.file_uploaded = True
+                    if mongo_ok:
+                        saved, message = save_uploaded_csv_pair(
+                            user_email=st.session_state.auth_user["email"],
+                            csv_file_name=selected_file,
+                        )
+                        st.session_state.upload_log_message = message
+                        st.session_state.upload_log_error = not saved
+                        cached_recent_user_history.clear()
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Error loading file: {e}")
 
     if mongo_ok:
         history = cached_recent_user_history(st.session_state.auth_user["email"], limit=5)
@@ -422,6 +550,37 @@ summary = st.session_state.summary
 
 with st.sidebar:
     st.markdown("---")
+    local_files = get_previously_uploaded_files()
+    if local_files:
+        st.subheader("📁 Switch Dataset")
+        try:
+            current_idx = local_files.index(st.session_state.uploaded_filename)
+        except ValueError:
+            current_idx = 0
+        selected_file = st.selectbox(
+            "Quick switch to another dataset",
+            options=local_files,
+            index=current_idx,
+            key="sidebar_dataset_switch"
+        )
+        if selected_file != st.session_state.uploaded_filename:
+            import os
+            file_path = os.path.join("/Users/ankushpratham/Ankush_Coding/AI_Model/data_loss_analyzer/uploaded_datasets", selected_file)
+            try:
+                with open(file_path, "rb") as f:
+                    file_bytes = f.read()
+                st.session_state.uploaded_df = parse_uploaded_dataset(file_bytes, selected_file)
+                st.session_state.uploaded_filename = selected_file
+                st.session_state.file_uploaded = True
+                # Reset analysis state to trigger re-run
+                st.session_state.analysis = None
+                st.session_state.summary = None
+                st.session_state.critical_columns = []
+                st.session_state.business_context = ""
+                st.rerun()
+            except Exception as e:
+                st.error(f"Error loading file: {e}")
+
     if mongo_ok:
         history = cached_recent_user_history(st.session_state.auth_user["email"], limit=5)
         if history:
