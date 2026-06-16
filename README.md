@@ -1,8 +1,5 @@
-# RAG Data Loss Analyzer (Full Stack)
+# RAG Data Loss Analyzer 
 
-A Streamlit full-stack app that now includes:
-
-- `Sign Up` and `Sign In` authentication using Supabase Auth
 - CSV upload and missing-data analysis with pandas
 - RAG-style business impact summary generation
 - MongoDB persistence for saved analysis history per user
