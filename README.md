@@ -1,8 +1,8 @@
 # RAG Data Loss Analyzer 
 
-- CSV upload and missing-data analysis with pandas
-- RAG-style business impact summary generation
-- MongoDB persistence for saved analysis history per user
+-> CSV upload and missing-data analysis with pandas
+-> RAG-style business impact summary generation
+-> MongoDB persistence for saved analysis history per user
 
 ## Run Locally
 
